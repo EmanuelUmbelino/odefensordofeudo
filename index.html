@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html>
+<body>
+<center>
+<canvas id="myCanvas" width="800" height="600" style="border:1px solid #000000;">
+</canvas>
+</center>
+<script>
+
+	// Ligando o canvas ao código javascript
+	var canvas = document.getElementById("myCanvas");
+	var context = canvas.getContext("2d");
+	
+	//FUNDO
+	var fundo = new Image();
+	fundo.src = "Imagens/Fundo/Fundo.png";
+	var fundo2 = new Image();
+	fundo2.src = "Imagens/Fundo/Fase2.png";
+	var fundo3 = new Image();
+	fundo3.src = "Imagens/Fundo/Fase3.png";
+	var castelo = new Image();
+	castelo.src = "Imagens/Fundo/Castelo.png";
+	var castelo2 = new Image();
+	castelo2.src = "Imagens/Fundo/Castelo2.png";
+	var castelo3 = new Image();
+	castelo3.src = "Imagens/Fundo/Castelo3.png";
+	var nuvens = new Image();
+	nuvens.src = "Imagens/Fundo/Nuvens.png";
+	var nuvens2 = new Image();
+	nuvens2.src = "Imagens/Fundo/Nuvens2.png";
+	var nuvens3 = new Image();
+	nuvens3.src = "Imagens/Fundo/Nuvens3.png";
+	var nuvemx1 = 950;
+	var nuvemx2 = 810;
+	var nuvemy1 = 100;
+	var nuvemy2 = 200;
+	var nuvemv1 = 0.3;
+	var nuvemv2 = 2;
+	//Menu
+	var menu = new Image();
+	menu.src = "Imagens/Menus/Menu/botoes.png";
+	//AUDIOS
+	var audio_menu = new Audio();
+	audio_menu.src = "Sons/menu.mp3";
+	var audio_fase1 = new Audio();
+	audio_fase1.src = "Sons/fase1.mp3";
+	var audio_fase2 = new Audio();
+	audio_fase2.src = "Sons/fase2.mp3";
+	var audio_fase3 = new Audio();
+	audio_fase3.src = "Sons/fase3.mp3";
+	var audio_chefe = new Audio();
+	audio_chefe.src = "Sons/chefe.mp3";
+	var audio_click = new Audio();
+	audio_click.src = "Sons/click.mp3";
+	//creditos
+	var credito = new Image();
+	credito.src = "Imagens/Menus/creditos.png";
+	//instrucoes
+	var instrucao = new Image();
+	instrucao.src = "Imagens/Menus/instrucoes.png";
+	// botoes
+	var pauseb = new Image();
+	pauseb.src = "Imagens/Fundo/botoes/pause.png";
+	var som0 = new Image();
+	som0.src = "Imagens/Fundo/botoes/som0.png";
+	var som1 = new Image();
+	som1.src = "Imagens/Fundo/botoes/som1.png";
+	var som = true;
+	// pause
+	var _pause = new Image();
+	_pause.src = "Imagens/Menus/pause.png";
+	// game over
+	var fim = new Image();
+	fim.src = "Imagens/Menus/gameover.png";
+	var prox = new Image();
+	prox.src = "Imagens/Menus/proxfase.png";
+	
+	// modos
+	var creditos = false;
+	var instrucoes = false;
+	var jogar = false;
+	var pause = false;
+	var gameover = false;
+	
+	// captura de tempo para independência de FPS do computador
+	var start = (new Date()).getTime();
+	var current;	
+	var currentFrame = 0.;
+	
+	// Array [IMAGENS] para [ANIMAÇÃO]
+	var player_a_shot = new Array();
+	var numFrames_shot = 2;
+	var player_a = new Array();
+	var numFrames_a = 4;
+	var guerreiro_a = new Array();
+	var numFrames_guerreiro = 2;
+	var plebeu_a = new Array();
+	var numFrames_plebeu = 2;
+	var ogro_a = new Array();
+	var numFrames_ogro = 2;
+	var LifeBar = new Array();
+	var numFrames_LifeBar = 9;
+	
+	// preenchendo o array com [IMAGENS] e carregando as [IMAGENS]
+	for (var i = 0; i < numFrames_shot; i++)
+	{
+	    player_a_shot[i] = new Image();
+		player_a_shot[i].src = "Imagens/Arqueiro_load" + (i+1) + ".png";
+	}	
+	for (var i = 0; i < numFrames_a; i++)
+	{
+	    player_a[i] = new Image();
+		player_a[i].src = "Imagens/Arqueiro" + (i+1) + ".png";
+	}	
+	for (var i = 0; i < numFrames_guerreiro; i++)
+	{
+	    guerreiro_a[i] = new Image();
+		guerreiro_a[i].src = "Imagens/Guerreiro" + (i+1) + ".png";
+	}	
+	for (var i = 0; i < numFrames_plebeu; i++)
+	{
+	    plebeu_a[i] = new Image();
+		plebeu_a[i].src = "Imagens/Plebeu" + (i+1) + ".png";
+	}
+	for (var i = 0; i < numFrames_ogro; i++)
+	{
+	    ogro_a[i] = new Image();
+		ogro_a[i].src = "Imagens/Ogro" + (i+1) + ".png";
+	}
+	for (var i = 0; i < numFrames_LifeBar; i++)
+	{
+	    LifeBar[i] = new Image();
+		LifeBar[i].src = "Imagens/LifeBar/LifeBar" + (i+1) + ".png";
+	}	
+	function deltaTime()
+	{
+		current = (new Date()).getTime();
+		elapsed = current - start;
+		start = current;
+		var delta = elapsed / 1000.;			
+		return delta;
+	}	
+	//waves e fases
+	var fase = 0;
+	var chefe = false;
+	var wave = 0;
+	var i_vivo = 0;
+	// player
+	var player = new Image();
+	player.src = "Imagens/Arqueiro.png";
+	var player_shot = new Image();
+	player_shot.src = "Imagens/Arqueiro_load.png";
+	var player_x = 75;
+	var player_y = 480;
+	var player_w = 30;
+	var player_h = 60;
+	var player_speed = 11;
+	var player_moveLeft = false;
+	var player_moveRight = false;
+	var player_jump = false;
+	var pontos = 0;
+	// flecha
+	var flecha = new Image();
+	flecha.src = "Imagens/Flecha.png";
+	var f_x = player_x + 10;
+	var f_y = player_y + 25;
+	var f_w = 33;
+	var f_h = 6;
+	var f_speed = 25;
+	var f_move = false;
+	//Guerreiro
+	var n_guerreiro;
+	var danoguerreiro = [];
+	var guerreiro_x = [];
+	var guerreiro_y = [];
+	var guerreiro_w = [];
+	var guerreiro_h = [];
+	var guerreiro_speed = [];
+	var guerreiro_move = [];
+	var guerreiro_life = [];
+	var guerreiro_dead = [];
+	var audio_guerreiro = new Audio();
+	audio_guerreiro.src = "Sons/guerreiro.mp3";
+	guerreiro = new Image();
+	guerreiro.src = "Imagens/Guerreiro1.png";
+	var guerreiro_bar = [];
+	var num_gbar = 3;
+	for (var i = 0; i < num_gbar; i++)
+	{
+	    guerreiro_bar[i] = new Image();
+		guerreiro_bar[i].src = "Imagens/LifeBar/Inimigos/Guerreiro/" + (i+1) + ".png";
+	}
+	// Plebeu
+	var danoplebeu = [];
+	var n_plebeu;
+	var plebeu_x = [];
+	var plebeu_y = [];
+	var plebeu_w = [];
+	var plebeu_h = [];
+	var plebeu_speed = [];
+	var plebeu_move = [];
+	var plebeu_life = [];
+	var plebeu_dead = [];
+	var audio_plebeu = new Audio();
+	audio_plebeu.src = "Sons/plebeu.mp3";
+	plebeu = new Image();
+	plebeu.src = "Imagens/Plebeu1.png";
+	var plebeu_bar = [];
+	var num_pbar = 1;
+	for (var i = 0; i < num_pbar; i++)
+	{
+	    plebeu_bar[i] = new Image();
+		plebeu_bar[i].src = "Imagens/LifeBar/Inimigos/Plebeu/" + (i+1) + ".png";
+	}
+	//Ogro
+	var n_ogro;
+	var danoogro = [];
+	var ogro_x = [];
+	var ogro_y = [];
+	var ogro_w = [];
+	var ogro_h = [];
+	var ogro_speed = [];
+	var ogro_move = [];
+	var ogro_life = [];
+	var ogro_dead = [];
+	var audio_ogro = new Audio();
+	audio_ogro.src = "Sons/ogro.mp3";
+	ogro = new Image();
+	ogro.src = "Imagens/Ogro1.png";
+	var ogro_bar = [];
+	var num_obar = 5;
+	for (var i = 0; i < num_obar; i++)
+	{
+	    ogro_bar[i] = new Image();
+		ogro_bar[i].src = "Imagens/LifeBar/Inimigos/Ogro/" + (i+1) + ".png";
+	}
+	
+	function _wave()
+	{
+		if (fase == 1)
+		{
+			switch	(wave)
+			{
+				case 1:
+						n_plebeu = 1;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 1;
+				break;
+				case 2:
+					
+						n_plebeu = 3;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 3;
+				break;
+				case 3:
+						n_plebeu = 4;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 4;
+				break;
+				case 4:
+					n_plebeu = 6;
+					n_guerreiro = 0;
+					n_ogro = 0;
+					i_vivo = 6;
+				break;	
+				case 5:
+					n_plebeu = 0;
+					n_guerreiro = 1;
+					n_ogro = 0;
+					i_vivo = 1;
+				break;	
+				case 6:
+					n_plebeu = 0;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 2;
+				break;
+				case 7:
+					n_plebeu = 2;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 4;
+				break;
+				case 8:
+					n_plebeu = 2;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 5;
+				break;
+				case 9:
+					n_plebeu = 4;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 7;
+				break;
+				case 10:
+					n_plebeu = 5;
+					n_guerreiro = 4;
+					n_ogro = 1;
+					i_vivo = 10;
+				break;
+			}
+		}
+		if (fase == 2)
+		{
+			switch	(wave)
+			{
+				case 1:
+						n_plebeu = 1;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 1;
+				break;
+				case 2:
+					
+						n_plebeu = 3;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 3;
+				break;
+				case 3:
+						n_plebeu = 4;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 4;
+				break;
+				case 4:
+					n_plebeu = 6;
+					n_guerreiro = 0;
+					n_ogro = 0;
+					i_vivo = 6;
+				break;	
+				case 5:
+					n_plebeu = 0;
+					n_guerreiro = 1;
+					n_ogro = 0;
+					i_vivo = 1;
+				break;	
+				case 6:
+					n_plebeu = 0;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 2;
+				break;
+				case 7:
+					n_plebeu = 2;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 4;
+				break;
+				case 8:
+					n_plebeu = 2;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 5;
+				break;
+				case 9:
+					n_plebeu = 4;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 7;
+				break;
+				case 10:
+					n_plebeu = 5;
+					n_guerreiro = 4;
+					n_ogro = 1;
+					i_vivo = 10;
+				break;
+			}
+		}
+		if (fase == 3)
+		{
+			switch	(wave)
+			{
+				case 1:
+						n_plebeu = 1;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 1;
+				break;
+				case 2:
+					
+						n_plebeu = 3;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 3;
+				break;
+				case 3:
+						n_plebeu = 4;
+						n_guerreiro = 0;
+						n_ogro = 0;
+						i_vivo = 4;
+				break;
+				case 4:
+					n_plebeu = 6;
+					n_guerreiro = 0;
+					n_ogro = 0;
+					i_vivo = 6;
+				break;	
+				case 5:
+					n_plebeu = 0;
+					n_guerreiro = 1;
+					n_ogro = 0;
+					i_vivo = 1;
+				break;	
+				case 6:
+					n_plebeu = 0;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 2;
+				break;
+				case 7:
+					n_plebeu = 2;
+					n_guerreiro = 2;
+					n_ogro = 0;
+					i_vivo = 4;
+				break;
+				case 8:
+					n_plebeu = 2;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 5;
+				break;
+				case 9:
+					n_plebeu = 4;
+					n_guerreiro = 3;
+					n_ogro = 0;
+					i_vivo = 7;
+				break;
+				case 10:
+					n_plebeu = 5;
+					n_guerreiro = 4;
+					n_ogro = 1;
+					i_vivo = 10;
+				break;
+			}
+		}
+		for (var o = 0; o < n_ogro; o++)
+		{
+			danoogro[o] = false;
+			ogro_life[o] = 5;
+			ogro_x[o] = 1000 + Math.floor(Math.random() * 1001);
+			ogro_y[o] = 450;
+			ogro_w[o] = 39;
+			ogro_h[o] = 58;
+			ogro_speed[o] = 4;
+			ogro_move[o] = true;
+			ogro_dead[o] = false;
+		}
+		for (var g = 0; g < n_guerreiro; g++)
+		{
+			danoguerreiro[g] = false;
+			guerreiro_life[g] = 3;
+			guerreiro_x[g] = 1000 + Math.floor(Math.random() * 1001);
+			guerreiro_y[g] = 480;
+			guerreiro_w[g] = 39;
+			guerreiro_h[g] = 58;
+			guerreiro_speed[g] = 7;
+			guerreiro_move[g] = true;
+			guerreiro_dead[g] = false;
+		}
+		for (var p = 0; p < n_plebeu; p++)
+		{
+			danoplebeu[p] = false;
+			plebeu_life[p] = 1;
+			plebeu_x[p] = 1000 + Math.floor(Math.random() * 1001);
+			plebeu_y[p] = 480;
+			plebeu_w[p] = 39;
+			plebeu_h[p] = 58;
+			plebeu_speed[p] = 10;
+			plebeu_move[p] = true;
+			plebeu_dead[p] = false;
+		}
+		
+	}
+	// castelo
+	var castle_life = 100;
+	
+	// retangulo Fill
+	function drawRetanguloFill (x, y, largura, altura,color)
+	{
+		context.fillStyle = color;
+		context.fillRect(x,y, largura, altura);
+	}
+	// função escrever
+	function drawText(x,y,text,font)
+	{
+		context.fillStyle = "#000000";
+		context.font = font;
+		context.fillText(text, x, y);		
+	}
+	// criando funções para uso do mouse
+	var _mouseUp = function(e)
+	{
+		if(e.button == 0)
+		{
+			if (e.x - canvas.offsetLeft > 708 && e.x  - canvas.offsetLeft < 733 && !pause && e.y > 48 && e.y < 75)
+			{
+				som = !som;
+				if (som)
+				{
+					audio_click.play();
+				}
+			}
+			if (!jogar)
+			{
+				if (e.x - canvas.offsetLeft > 591 && e.x  - canvas.offsetLeft < 790)
+				{
+					if(e.y > 371 && e.y < 410)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						jogar = true;
+						fase = 1;
+						wave = 1;
+						castle_life = 100;
+					}
+					if(e.y > 428 && e.y < 468)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						instrucoes = true;
+					}
+					if(e.y > 484 && e.y < 524)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						creditos = true;
+					}
+					if(e.y > 544 && e.y < 584)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						window.close();
+					}
+				}
+				
+			}
+			else
+			{
+				if (pause)
+				{
+					if (e.x - canvas.offsetLeft > 296 && e.x  - canvas.offsetLeft < 494)
+					{
+						if(e.y > 211 && e.y < 250)
+						{
+							if (som)
+							{
+								audio_click.play();
+							}
+							pause = !pause;
+						}
+						if(e.y > 291 && e.y < 330)
+						{
+							if (som)
+							{
+								audio_click.play();
+							}
+							instrucoes = true;
+						}
+						if(e.y > 368 && e.y < 407)
+						{
+							if (som)
+							{
+								audio_click.play();
+							}
+							window.location.reload()
+						}
+					}
+				}
+				if (e.x - canvas.offsetLeft > 741 && e.x  - canvas.offsetLeft < 766 && !pause && e.y > 48 && e.y < 75)
+				{
+					if (som)
+					{
+						audio_click.play();
+					}
+					pause = true;
+				}
+			}
+			if	(instrucoes || creditos)
+			{
+				if (e.x - canvas.offsetLeft > 50 && e.x - canvas.offsetLeft < 203)
+				{
+					if (e.y > 531 && e.y < 564)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						instrucoes = false;
+						creditos = false;
+					}
+				}
+			}
+			if (gameover)
+			{
+				if (e.x - canvas.offsetLeft > 296 && e.x  - canvas.offsetLeft < 494)
+				{
+					if(e.y > 368 && e.y < 407)
+					{
+						if (som)
+						{
+							audio_click.play();
+						}
+						window.location.reload();
+					}
+				}
+			}
+		}
+		
+	}
+	// teclas
+	var keyDown = function(e)
+	{
+		switch (e.keyCode)
+		{
+			case 37: // seta esquerda
+				player_moveLeft = true;
+
+				break;
+			case 38: // seta cima
+				if	(player_y + player_h>= 480)
+				{
+					player_jump = true;
+				}
+				break;
+			case 39: // seta direita
+				player_moveRight = true;
+				break;
+
+		}
+	}
+	var keyUp = function(e)
+	{
+		switch (e.keyCode)
+		{
+			case 80: // p
+				pause = !pause;
+				break;
+			case 37: // seta esquerda
+				player_moveLeft = false;
+				break;
+
+			case 39: // seta direita
+				player_moveRight = false;
+				break;
+			
+			case 32: // barra de espaço
+				if (!f_move && f_x == player_x + 10)
+				{
+					f_move = true;
+				}
+				break;
+		}				
+	}
+	// registrando as funções
+	document.addEventListener("keydown", keyDown, true);
+	document.addEventListener("keyup",   keyUp,   true);
+	canvas.addEventListener("mouseup", _mouseUp, true);
+	
+	// função de atualização do player
+	function updatePlayer()
+	{
+		if (jogar && !pause)
+		{
+			if (player_moveLeft)
+				{
+					player_x -= player_speed;
+				}
+				
+			if (player_moveRight)
+				{
+					player_x += player_speed;
+				}	
+			if	(player_jump)
+			{
+				if(player_y > 400)
+				{
+					player_y -= player_speed;
+				}
+				else
+				{
+					player_jump = false
+				}
+				
+			} 
+			else 
+			{	
+				if(player_y < 480)
+				{
+					player_y += player_speed;
+				}	
+			}	
+			if (player_x < 0)
+				{
+					player_x = 0;
+				}	
+			else if (player_x + player_w > canvas.width)
+				{
+					player_x = canvas.width - player_w;
+				}		
+		}
+	}
+	// Guerreiro
+	function updateGuerreiro ()
+	{
+		if (jogar)
+		{
+			for (var g = 0; g < n_guerreiro; g++)
+			{
+				if (!pause)
+				{
+					if (guerreiro_x[g] < 150 && castle_life > 0 && guerreiro_dead[g] == false)
+					{
+						guerreiro_move[g] = false; 
+						danoguerreiro[g] = true;
+					}
+					if (castle_life <= 0 && guerreiro_dead[g] == false)
+					{
+						guerreiro_move[g] = true;
+					}
+					if (guerreiro_move[g] && guerreiro_dead[g] == false)
+					{
+						guerreiro_x[g] -= guerreiro_speed[g];
+					}
+					if (guerreiro_x[g] < f_x + f_w && f_move && guerreiro_x[g] > player_x && guerreiro_dead[g] == false && f_y >= guerreiro_y[g])
+					{
+						guerreiro_life[g] -= 1;
+						f_w = 0;
+						f_h = 0;
+						f_x = - 1000;
+						f_move = false;
+						setTimeout(flecharess,400);
+					}
+				}
+				if (guerreiro_life[g] < 1 && guerreiro_dead[g] == false)
+				{
+					if (som)
+					{
+						audio_guerreiro.play();
+					}
+					guerreiro_dead[g] = true;
+					pontos += 1;
+					i_vivo -= 1;
+				}
+			}
+		}
+	}
+	// Plebeu
+	function updatePlebeu ()
+	{
+		if (jogar)
+		{
+			for (var p = 0; p < n_plebeu; p++)
+			{
+				if (!pause)
+				{
+					if (plebeu_x[p] < 150 && castle_life > 0 && plebeu_dead[p] == false)
+					{
+						plebeu_move[p] = false; 
+						danoplebeu[p] = true;
+					}
+					if (castle_life <= 0 && plebeu_dead[p] == false)
+					{
+						plebeu_move[p] = true;
+					}
+					if (plebeu_move[p] && plebeu_dead[p] == false)
+					{
+						plebeu_x[p] -= plebeu_speed[p];
+					}
+					if (plebeu_x[p] < f_x + f_w && f_move && plebeu_x[p] > player_x && plebeu_dead[p] == false && f_y >= plebeu_y[p])
+					{
+						plebeu_life[p] -= 1;
+						f_w = 0;
+						f_h = 0;
+						f_move = false;
+						setTimeout(flecharess,400);
+					}
+				}
+				if (plebeu_life[p] < 1 && plebeu_dead[p] == false)
+				{
+					if (som)
+					{
+						audio_plebeu.play();
+					}
+					plebeu_dead[p] = true;
+					pontos += 1;
+					i_vivo -= 1;
+				}
+			}	
+		}
+	}
+	
+	// Ogro
+	function updateOgro ()
+	{
+		if (jogar)
+		{
+			for (var o = 0; o < n_ogro; o++)
+			{
+				if (!pause)
+				{
+					if (ogro_x[o] < 150 && castle_life > 0 && ogro_dead[o] == false)
+					{
+						ogro_move[o] = false; 
+						danoogro[o] = true;
+					}
+					if (castle_life <= 0 && ogro_dead[o] == false)
+					{
+						ogro_move[o] = true;
+					}
+					if (ogro_move[o] && ogro_dead[o] == false)
+					{
+						ogro_x[o] -= ogro_speed[o];
+					}
+					if (ogro_x[o] < f_x + f_w && f_move && ogro_x[o] > player_x && ogro_dead[o] == false)
+					{
+						if  (f_y < 480)
+						{
+						ogro_life[o] -= 3;
+						f_w = 0;
+						f_h = 0;
+						f_x = - 1000;
+						f_move = false;
+						setTimeout(flecharess,400);
+						}
+						else
+						{
+						ogro_life[o] -= 1;
+						f_w = 0;
+						f_h = 0;
+						f_x = - 1000;
+						f_move = false;
+						setTimeout(flecharess,400);
+						}
+					}
+				}
+				if (ogro_life[o] < 1 && ogro_dead[o] == false)
+				{
+					if (som)
+					{
+						audio_ogro.play();
+					}
+					ogro_dead[o] = true;
+					pontos += 1;
+					i_vivo -= 1;
+				}
+			}
+		}
+	}
+	// flecha
+	function flecharess()
+	{
+		f_x = player_x + 10;
+		f_y = player_y + 25;
+		f_w = 30;
+		f_h = 7;
+		f_speed = 25;
+		f_move = false;
+	}
+	// update flecha
+	function updateFlecha()
+	{
+		if (f_move)
+		{
+			if (!pause)
+			{
+			f_x += f_speed;
+			}
+		}
+		else
+		{
+			f_x = player_x + 10;
+			f_y = player_y + 25;
+		}
+		if (f_x > canvas.width)
+		{
+			setTimeout(flecharess,500);
+		}	
+	}
+	// barra de vida
+	function _LifeBar()
+	{
+		if (castle_life == 100)
+		{
+			context.drawImage(LifeBar[0],60, 180)
+		}
+		else if (castle_life >= 90)
+		{
+			context.drawImage(LifeBar[1],60, 180)
+		}
+		else if (castle_life >= 75)
+		{
+			context.drawImage(LifeBar[2],60, 180)
+		}
+		else if (castle_life >= 60)
+		{
+			context.drawImage(LifeBar[3],60, 180)
+		}
+		else if (castle_life >= 45)
+		{
+			context.drawImage(LifeBar[4],60, 180)
+		}
+		else if (castle_life >= 30)
+		{
+			context.drawImage(LifeBar[5],60, 180)
+		}
+		else if (castle_life >= 15)
+		{
+			context.drawImage(LifeBar[6],60, 180)
+		}
+		else if (castle_life >= 1)
+		{
+			context.drawImage(LifeBar[7],60, 180)
+		}
+		else if (castle_life <= 0)
+		{
+			context.drawImage(LifeBar[8],60, 180)
+		}
+		drawText (140, 195, castle_life, "10px Arial");
+	}
+	// nuvens
+	function updateNuvem()
+	{
+		if (!pause)
+		{
+			nuvemx1 -= nuvemv1;
+			nuvemx2 -= nuvemv2;
+			if (nuvemx1 < -542) 
+			{
+				nuvemx1 = 810 + Math.floor(Math.random() * 400);
+				nuvemy1 = Math.floor(Math.random() * 250);
+				nuvemv1 = 0.1 + Math.floor(Math.random() * 3);
+			}
+			if (nuvemx2 < -542)
+			{
+				nuvemx2 = 810 + Math.floor(Math.random() * 400);
+				nuvemy2 = Math.floor(Math.random() * 250);
+				nuvemv2 = 0.1 + Math.floor(Math.random() * 3);
+			}
+		}
+	}
+	// para chamar as outras funções
+	function update()
+	{
+		if (i_vivo == 0 && wave < 10)
+		{
+			wave ++;
+			_wave();
+		}
+		if (wave == 10 && i_vivo == 0)
+		{
+			fase ++;
+			wave = 1;
+			_wave();
+		}
+		updateNuvem();
+		updatePlayer();
+		updateFlecha();
+		updateGuerreiro();
+		updatePlebeu();
+		updateOgro();
+		var delta = deltaTime();	
+		currentFrame += delta * 10;	
+	}
+	function audio()
+	{
+	if (som)
+		{
+			if (!jogar)
+			{
+				audio_menu.play();
+				audio_fase1.pause();
+				audio_fase2.pause();
+				audio_fase3.pause();
+				audio_chefe.pause();
+			}
+			else if (fase == 1)
+			{
+				audio_menu.pause();
+				audio_fase2.pause();
+				audio_fase3.pause();
+				audio_chefe.pause();
+				audio_fase1.play();
+			}
+			else if (fase == 2)
+			{
+				audio_fase1.pause();
+				audio_fase3.pause();
+				audio_chefe.pause();
+				audio_menu.pause();
+				audio_fase2.play();
+			}
+			else if (fase == 3)
+			{
+				audio_fase1.pause();
+				audio_fase2.pause();
+				audio_chefe.pause();
+				audio_menu.pause();
+				audio_fase3.play();
+			}
+			else if (chefe)
+			{
+				audio_fase1.pause();
+				audio_fase2.pause();
+				audio_fase3.pause();
+				audio_chefe.play();
+			}
+		}
+		else
+		{
+			audio_fase1.pause();
+			audio_fase2.pause();
+			audio_fase3.pause();
+			audio_chefe.pause();
+			audio_menu.pause();
+		}
+	}
+	// função de desenho
+	function draw()
+	{
+		// função de limpeza de área retangular
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.drawImage(fundo, 0, 0);
+		context.drawImage(nuvens, nuvemx1, nuvemy1);
+		context.drawImage(nuvens, nuvemx2, nuvemy2);
+		context.drawImage(castelo, 0, 0);
+		if (fase == 1)
+		{
+			context.drawImage(fundo, 0, 0);
+			context.drawImage(nuvens, nuvemx1, nuvemy1);
+			context.drawImage(nuvens, nuvemx2, nuvemy2);
+			context.drawImage(castelo, 0, 0);
+		}
+		else if (fase == 2)
+		{
+			context.drawImage(fundo2, 0, 0);
+			context.drawImage(nuvens2, nuvemx1, nuvemy1);
+			context.drawImage(nuvens2, nuvemx2, nuvemy2);
+			context.drawImage(castelo2, 0, 0);
+		}
+		else if (fase == 3)
+		{
+			context.drawImage(fundo3, 0, 0);
+			context.drawImage(nuvens3, nuvemx1, nuvemy1);
+			context.drawImage(nuvens3, nuvemx2, nuvemy2);
+			context.drawImage(castelo3, 0, 0);
+		}
+		if (som)
+		{
+			context.drawImage(som1, 708, 48);
+		}
+		else
+		{
+			context.drawImage(som0, 708, 48);
+		}
+		if (!jogar)
+		{
+			context.drawImage(menu, 0, 0);
+			drawText(200, 50, "O DEFENSOR DO FEUDO", "40px Monotype Corsiva");
+		}
+		else 
+		{	
+			
+			context.drawImage(pauseb, 741, 48);
+			_LifeBar();
+			drawText (600,50, "score: " + pontos, "20px Arial");
+			drawText (500,50, "wave: " + wave, "20px Arial");
+			drawText (400,50, "fase: " + fase, "20px Arial");
+			// flecha
+			if (f_h > 1)
+			{
+				context.drawImage(flecha, f_x,f_y);
+			}
+			// player Desenha o frame atual da animação
+			if (player_moveLeft && f_x == player_x + 10 && !pause || player_moveRight && f_x == player_x + 10 && !pause)
+			{
+				context.drawImage(player_a_shot[Math.floor(currentFrame)%numFrames_shot],  player_x - 5, player_y);
+			}
+			else if (f_x != player_x + 10 && player_moveLeft == false &&  player_moveRight == false)
+			{
+				context.drawImage(player, player_x - 5, player_y);
+			}
+			else if (player_moveLeft && f_x != player_x + 10 && !pause ||  player_moveRight && f_x != player_x + 10 && !pause)
+			{
+				context.drawImage(player_a[Math.floor(currentFrame)%numFrames_a],  player_x - 5, player_y);
+			}
+			else 
+			{
+				context.drawImage(player_shot, player_x + 3, player_y);
+			}
+			//guerreiro
+			for (var g = 0; g < n_guerreiro; g++)
+			{
+				if (guerreiro_move[g] && !guerreiro_dead[g] && !pause)
+				{
+					context.drawImage(guerreiro_a[Math.floor(currentFrame)%numFrames_guerreiro],guerreiro_x[g], guerreiro_y[g]);
+				}
+				else if (!guerreiro_dead[g])
+				{
+					context.drawImage(guerreiro, guerreiro_x[g], guerreiro_y[g]);
+				}
+				if (!guerreiro_dead[g])
+				{
+					if(guerreiro_life[g] == 3)
+					{
+						context.drawImage(guerreiro_bar[0], guerreiro_x[g] - 10,guerreiro_y[g] - 20)
+					}
+					else if (guerreiro_life[g] == 2)
+					{
+						context.drawImage(guerreiro_bar[1], guerreiro_x[g] - 10,guerreiro_y[g] - 20)
+					}
+					else if (guerreiro_life[g] == 1)
+					{
+						context.drawImage(guerreiro_bar[2], guerreiro_x[g] - 10,guerreiro_y[g] - 20)
+					}
+					drawText (guerreiro_x[g] + 18, guerreiro_y[g] - 10, guerreiro_life[g], "5px Arial Black");
+				}
+			}
+			// Plebeu
+			for (var p = 0; p < n_plebeu; p++)
+			{
+				
+				if (plebeu_move[p] && !plebeu_dead[p] && !pause)
+				{
+					context.drawImage(plebeu_a[Math.floor(currentFrame)%numFrames_plebeu],plebeu_x[p], plebeu_y[p]);
+				}
+				else if (!plebeu_dead[p])
+				{
+					context.drawImage(plebeu, plebeu_x[p], plebeu_y[p]);
+				}
+				if (!plebeu_dead[p])
+				{
+					context.drawImage(plebeu_bar[0], plebeu_x[p] - 10, plebeu_y[p] - 20)
+					drawText (plebeu_x[p] + 18, plebeu_y[p] - 10, plebeu_life[p], "5px Arial Black");
+				}
+			}
+			//Ogro
+			for (var o = 0; o < n_ogro; o++)
+			{
+				if(!ogro_dead[o])
+				{				
+					if (ogro_move[o] && !pause)
+					{
+						context.drawImage(ogro_a[Math.floor(currentFrame)%numFrames_ogro],ogro_x[o], ogro_y[o]);
+					}
+					else
+					{
+						context.drawImage(ogro, ogro_x[o], ogro_y[o]);
+					}
+				}
+				if(!ogro_dead[o])
+				{
+					if(ogro_life[o] == 5)
+					{
+						context.drawImage(ogro_bar[0], ogro_x[o] - 10, ogro_y[o] - 20)
+					}
+					else if (ogro_life[o] == 4)
+					{
+						context.drawImage(ogro_bar[1], ogro_x[o] - 10, ogro_y[o] - 20)
+					}
+					else if (ogro_life[o] == 3)
+					{
+						context.drawImage(ogro_bar[2], ogro_x[o] - 10, ogro_y[o] - 20)
+					}
+					else if (ogro_life[o] == 2)
+					{
+						context.drawImage(ogro_bar[3], ogro_x[o] - 10, ogro_y[o] - 20)
+					}
+					else if (ogro_life[o] == 1)
+					{
+						context.drawImage(ogro_bar[4], ogro_x[o] - 10, ogro_y[o] - 20)
+					}
+					drawText (ogro_x[o] + 18, ogro_y[o] - 10, ogro_life[o], "5px Arial Black");
+				}
+			}
+			//pause
+			if (pause)
+			{
+				context.drawImage(_pause, 0, 0);
+			}
+		}
+		if (instrucoes && pause || instrucoes && !jogar)
+		{
+			context.drawImage(instrucao, 0, 0);
+		}
+		if (jogar && !pause)
+		{
+			instrucoes = false;
+		}
+		if(creditos)
+		{
+			context.drawImage(credito, 0, 0);
+		}
+		if (castle_life < 1 && jogar)
+		{
+			gameover = true;
+			context.drawImage(fim, 0, 0);
+		}
+	}
+	function dano ()
+	{
+		for (var p = 0; p < n_plebeu; p++)
+		{
+			if (danoplebeu[p] && !pause)
+			{	
+				castle_life -= 1;
+			}
+		}
+		for (var g = 0; g < n_guerreiro; g++)
+		{
+			if (danoguerreiro[g] && !pause)
+			{	
+				castle_life -= 3;
+			}
+		}
+		for (var o = 0; o < n_ogro; o++)
+		{
+			if (danoogro[o] && !pause)
+			{	
+				castle_life -= 5;
+			}
+		}
+		setTimeout(dano, 500);
+	}
+	dano();
+	// ciclo da aplicação
+	function loop()
+	{
+		update();
+		draw();
+		audio();
+		setTimeout(loop, 30);
+	}
+	loop();
+</script>
+</body>
+</html>
